@@ -599,3 +599,5 @@ hs_err_pid*
 .dropbox
 .dropbox.attr
 .dropbox.cache
+
+aws-creds.json

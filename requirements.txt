@@ -1,2 +1,2 @@
 kafka-python==1.4.2
-boto
+boto3
