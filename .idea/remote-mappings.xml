@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteMappingsManager">
+    <list>
+      <list>
+        <remote-mappings server-id="python@docker://testing-term-proj:latest/python">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$" remote-root="/code" />
+            </list>
+          </settings>
+        </remote-mappings>
+        <remote-mappings server-id="python@docker-compose://[/Users/howie/Google-Drive/Masters/Testing/term-proj/docker-compose.yml]:producer/python">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$" remote-root="/code" />
+            </list>
+          </settings>
+        </remote-mappings>
+        <remote-mappings server-id="python@docker://term-proj_producer:latest/python">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$" remote-root="/code" />
+            </list>
+          </settings>
+        </remote-mappings>
+      </list>
+    </list>
+  </component>
+</project>
