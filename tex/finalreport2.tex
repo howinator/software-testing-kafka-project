@@ -33,6 +33,9 @@
 %----------------------------------------------------------------------------------------
 
 \documentclass[12pt]{article}
+%\usepackage[margin=0.1in]{geometry}
+\usepackage{multicol}
+\usepackage{wrapfig}
 \usepackage[english]{babel}
 \usepackage[utf8x]{inputenc}
 \usepackage{algpseudocode}
@@ -43,8 +46,28 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{listings}
+\usepackage{caption}
 \usepackage{url}
 \usepackage[colorinlistoftodos]{todonotes}
+	\addtolength{\oddsidemargin}{-.875in}
+	\addtolength{\evensidemargin}{-.875in}
+	\addtolength{\textwidth}{1.75in}
+
+\newcommand\myfigure[6]{%
+  \ifdim#2>.8\linewidth
+    {%
+      \centering
+      \includegraphics[width=#3]{#4}%
+      \captionof{figure}{#5}%
+    }%
+  \else
+  \begin{wrapfigure}{#1}{#2}
+    \includegraphics[width=#3]{#4}
+    \caption{#5}
+    \label{#6}
+  \end{wrapfigure}
+  \fi
+}
 
 \begin{document}
 
@@ -111,14 +134,12 @@ Dr. Sarfraz \textsc{Khurshid} % Supervisor's Name
 
 \end{titlepage}
 
-\twocolumn
+\begin{multicols}{2}
+\setlength{\columnsep}{1cm}
 
 \begin{abstract}
 \end{abstract}
 
-\section{Introduction}
-
-\section{Kafka Architecture}
 
 \section{Prior Work}
 
@@ -130,14 +151,14 @@ This is backed up by the findings of Yuan et al. \cite{simpletesting}.
 The authors of Yuan et al. analyzed a number of open-source distributed systems running production workloads in industry currently.
 Their findings showed that a large percentage of catastrophic failures could have been prevented by simple tests and static analysis.
 
-In Yuan et al.'s paper, they studied the catastrophuc failures 5 distributed, data-intensive systems, Cassandra, HBase, Hadoop Distrbibuted File System (HDFS), Hadoop MapReduce, and Redis.
+In Yuan et al.'s paper, they studied the catastrophic failures 5 distributed, data-intensive systems, Cassandra, HBase, Hadoop Distributed File System (HDFS), Hadoop MapReduce, and Redis.
 They defined a catastrophic failure as a failure which would result in unavailability of the system or data loss.
 To determine the faults of the system, the authors analyzed failures reported on the respective system's bug tracker.
 For each system, the authors analyzed the catastrophic failures.
 
 In general, Yuan et al. found that the failure modes of distributed systems were complex.
 The authors determined that the complexity of these failure modes was caused by the relatively large state space of distributed systems.
-Quantitatively, they found that 77\% of failures required more thatn one event to produce the failure, and 90\% required no more than three.
+Quantitatively, they found that 77\% of failures required more than one event to produce the failure, and 90\% required no more than three.
 
 The authors of Yuan et al. then analyzed the types of inputs required to produce the failure.
 The most unexpected finding from this analysis is that 24\% of failures were caused by a node becoming unreachable.
@@ -148,7 +169,7 @@ In distributed systems, there is the possibility that a sequence of events could
 The authors found that 74\% of failures are deterministic.
 This is a promising result because it means the failures are not by determined by the timing of the input events.
 
-By far the most unexpceted result of this paper was that 92\% of errors in distributed systems are caused by incorrect handling of errors.
+By far the most unexpected result of this paper was that 92\% of errors in distributed systems are caused by incorrect handling of errors.
 Put another way, the system identified a fault could occur, but then the system handled it incorrectly.
 Further breaking down catastrophic failures, the authors found that 35\% of catastrophic failures were caused by trivial mistakes, e.g., a "TODO" in the error handler or an ignored error.
 
@@ -162,6 +183,9 @@ A major vendor of Kafka, Confluent, has invested heavily in testing Kafka which 
 The Kafka testing process begins when any change is proposed.
 When a feature is proposed, the feature\'s design is described by a design document called a Kafka Improvement Proposal \(KIP\).
 
+\vspace{1em}
+\myfigure{L}{\linewidth}{\linewidth}{./kafkatestreport.png}{Sample of Kafka test report}{fig:kafkareport}
+\vspace{1em}
 Once the KIP is accepted, the feature is then built.
 The built feature then goes through a thorough code review process where core developers examine the patch line-by-line.
 
@@ -172,26 +196,57 @@ There is no mention of their code coverage.
 The third type of test mentioned by Confluent, distributed systems tests, are relatively novel.
 These types of tests involve putting the whole system under load and then injecting faults.
 Kafka has 310 of these type of tests which they run nightly.
-They then test the results of these tests online nigthly.
+They then test the results of these tests online nightly.
 A sample from a recent test report is shown in \ref{fig:kafkareport}.
-These distributed tests are the reason that Confluent built ducktape which is discussed in detail above.
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1.0\textwidth]{kafkatestreport.png}
-    \caption{Sample from Kafka test report}
-    \label{fig:kafkareport}
-\end{figure}
+These distributed tests are the reason that Confluent built Duck Tape which is discussed in detail above.
 
 
+\section{Evaluation}
 
+We showed that testing distributed systems can be challenging and the tooling for in the field is not great.
+Our first approach, using Duck Tape, did not work at all for two reasons.
+
+First, Duck Tape does not work for our preferred version of python.
+This is indicative of a project which is not well-maintained.
+
+Second, the Duck Tape framework only worked for positive test cases.
+If there was a test case which failed, Duck Tape would crash.
+
+In terms of our own custom testing framework, we found that our framework worked well for simple test cases.
+We were able to successfully test that messages were posted to Kafka brokers.
+Further, we were able to produce a node failure in the cluster mid-test which proved Kafka's failover ability.
+Proving that these simple, but essential functions worked was an honest success for this project.
+
+In terms of areas for improvement, there are a three things we would like to explore.
+
+First, we would like to test the system under load.
+This would involve saturating the connection to the brokers with messages.
+Once the system is under load, we would like to inject faults by stopping nodes.
+
+Second, we would like to simulate network failures.
+In our tests, we were only able to inject faults via node failure.
+If we had control over the network that the cluster was running on, we could randomly drop packets and observe how the system reacted.
+
+Third, we would like to automate this testing infrastructure by creating a fresh cluster for each test case.
+Configuration and state could be inherited from test-to-test, so by creating a new cluster for each test, via Jenkins and Kubernetes, we could isolate failures for proper debugging.
+
+\section{Conclusion}
+
+In all, we have explored the area of testing in distributed systems.
+By investigating the testing options available to one of the largest open-source distributed systems project, Kafka, we were able to find that the field of testing in distributed systems is relatively unexplored.
+
+We started with the primary testing framework available for Kafka, Duck Tape.
+After attempting to use the framework, we found that it is not ready to ready for widespread use.
+
+We developed our own testing framework which performed well for a limited set of simple test cases.
+However our testing framework is not well-suited for complex tests which would present as faults in a distibuted system.
 
 \section{Duck Tape}
 
 \section{Custom Testing Apparatus}
 
 
-
+\end{multicols}
 \newpage
 
 
