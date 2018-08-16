@@ -124,10 +124,12 @@ Dr. Sarfraz \textsc{Khurshid} % Supervisor's Name
 From our literature review, we found that the field of testing distributed systems is relatively unexplored.
 This is backed up by the findings of Yuan et al. \cite{simpletesting}.
 
+\subsection{Simple Testing Can Prevent Most Critical Failures}
+
 The authors of Yuan et al. analyzed a number of open-source distributed systems running production workloads in industry currently.
 Their findings showed that a large percentage of catastrophic failures could have been prevented by simple tests and static analysis.
 
-In Yuan et al.\'s paper, they studied the catastrophuc failures 5 distributed, data-intensive systems, Cassandra, HBase, Hadoop Distrbibuted File System (HDFS), Hadoop MapReduce, and Redis.
+In Yuan et al.'s paper, they studied the catastrophuc failures 5 distributed, data-intensive systems, Cassandra, HBase, Hadoop Distrbibuted File System (HDFS), Hadoop MapReduce, and Redis.
 They defined a catastrophic failure as a failure which would result in unavailability of the system or data loss.
 To determine the faults of the system, the authors analyzed failures reported on the respective system's bug tracker.
 For each system, the authors analyzed the catastrophic failures.
@@ -145,7 +147,43 @@ In distributed systems, there is the possibility that a sequence of events could
 The authors found that 74\% of failures are deterministic.
 This is a promising result because it means the failures are not by determined by the timing of the input events.
 
-By far the most unexpceted result of this paper
+By far the most unexpceted result of this paper was that 92\% of errors in distributed systems are caused by incorrect handling of errors.
+Put another way, the system identified a fault could occur, but then the system handled it incorrectly.
+Further breaking down catastrophic failures, the authors found that 35\% of catastrophic failures were caused by trivial mistakes, e.g., a "TODO" in the error handler or an ignored error.
+
+To rectify these errors, the authors built a static checker, Aspirator, which checks a codebase for trivially incorrect error handling.
+We were not able to install Aspirator ourselves because the binaries are no longer hosted, but we did replicate some of Aspirator's functionality with simple searches.
+We found that in Kafka, there is at least one error handler with a "TODO" which would have caused Aspirator to fail.
+
+\subsection{Confluent Testing Effort for Kafka}
+
+A major vendor of Kafka, Confluent, has invested heavily in testing Kafka which they have documented \cite{confluenttesting}.
+The Kafka testing process begins when any change is proposed.
+When a feature is proposed, the feature\'s design is described by a design document called a Kafka Improvement Proposal \(KIP\).
+
+Once the KIP is accepted, the feature is then built.
+The built feature then goes through a thorough code review process where core developers examine the patch line-by-line.
+
+In terms of actual testing, the Kafka project uses three kinds of tests: unit tests, integration tests and distributed systems tests.
+Kafka has at least 6,800 unit tests and 600 integration tests in the code base.
+There is no mention of their code coverage.
+
+The third type of test mentioned by Confluent, distributed systems tests, are relatively novel.
+These types of tests involve putting the whole system under load and then injecting faults.
+Kafka has 310 of these type of tests which they run nightly.
+They then test the results of these tests online nigthly.
+A sample from a recent test report is shown in \ref{fig:kafkareport}.
+These distributed tests are the reason that Confluent built ducktape which is discussed in detail above.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\textwidth]{kafkatestreport.png}
+    \caption{Sample from Kafka test report}
+    \label{fig:kafkareport}
+\end{figure}
+
+
+
 
 \section{Duck Tape}
 
@@ -157,7 +195,7 @@ By far the most unexpceted result of this paper
 
 
 \bibliographystyle{plain}
-\bibliography{references}
+\bibliography{references.bib}
 
 
 
