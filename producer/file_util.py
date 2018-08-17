@@ -2,7 +2,7 @@ import json
 
 
 def get_test_cases():
-    return [get_test_case(i) for i in range(1)]
+    return [get_test_case(i) for i in range(2)]
 
 
 def get_test_case(test_number):
